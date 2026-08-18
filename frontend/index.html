@@ -1366,6 +1366,184 @@
         }
 
         // ============================================
+        // API INTEGRATION - Fetch Data from Backend
+        // ============================================
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000/api' 
+            : '/api';
+        
+        // Helper function for API calls
+        async function fetchAPI(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.warn(`API fetch failed for ${endpoint}:`, error.message);
+                return null;
+            }
+        }
+        
+        // Load profile data
+        async function loadProfile() {
+            const profile = await fetchAPI('/profile');
+            if (profile) {
+                document.title = `${profile.full_name} | Portfolio`;
+                
+                // Update hero section
+                const heroName = document.querySelector('.hero-title .gradient-text');
+                if (heroName) heroName.textContent = profile.full_name;
+                
+                const heroTitle = document.querySelector('.hero-subtitle');
+                if (heroTitle) heroTitle.textContent = profile.title;
+                
+                // Update about section
+                const aboutBio = document.querySelector('#about p');
+                if (aboutBio && profile.bio) aboutBio.textContent = profile.bio;
+                
+                // Update contact info
+                const contactEmail = document.getElementById('contact-email');
+                const contactPhone = document.getElementById('contact-phone');
+                const contactLocation = document.getElementById('contact-location');
+                
+                if (contactEmail) contactEmail.textContent = profile.email;
+                if (contactPhone) contactPhone.textContent = profile.phone;
+                if (contactLocation) contactLocation.textContent = profile.location;
+                
+                // Update social links
+                if (profile.social) {
+                    const socialLinks = ['github', 'linkedin', 'instagram', 'twitter'];
+                    socialLinks.forEach(platform => {
+                        if (profile.social[platform]) {
+                            const link = document.getElementById(`social-${platform}`);
+                            if (link) {
+                                link.href = profile.social[platform];
+                                link.parentElement.style.display = 'block';
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Load skills data
+        async function loadSkills() {
+            const skillsData = await fetchAPI('/skills');
+            if (skillsData) {
+                const skillsContainer = document.querySelector('.skills-container');
+                if (skillsContainer) {
+                    skillsContainer.innerHTML = '';
+                    
+                    Object.entries(skillsData).forEach(([category, skills]) => {
+                        const categoryDiv = document.createElement('div');
+                        categoryDiv.className = 'skill-category';
+                        
+                        const categoryTitle = document.createElement('h4');
+                        categoryTitle.className = 'skill-category-title';
+                        categoryTitle.textContent = category;
+                        categoryDiv.appendChild(categoryTitle);
+                        
+                        const skillsGrid = document.createElement('div');
+                        skillsGrid.className = 'skills-grid';
+                        
+                        skills.forEach(skill => {
+                            const skillCard = document.createElement('div');
+                            skillCard.className = 'skill-card';
+                            skillCard.innerHTML = `
+                                <div class="skill-name">${skill.name}</div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="width: ${skill.proficiency}%"></div>
+                                </div>
+                                <div class="skill-level">${skill.proficiency}%</div>
+                            `;
+                            skillsGrid.appendChild(skillCard);
+                        });
+                        
+                        categoryDiv.appendChild(skillsGrid);
+                        skillsContainer.appendChild(categoryDiv);
+                    });
+                }
+            }
+        }
+        
+        // Load projects data
+        async function loadProjects() {
+            const projects = await fetchAPI('/projects');
+            if (projects && projects.length > 0) {
+                const projectsGrid = document.querySelector('.projects-grid');
+                if (projectsGrid) {
+                    projectsGrid.innerHTML = '';
+                    
+                    projects.slice(0, 6).forEach(project => {
+                        const projectCard = document.createElement('article');
+                        projectCard.className = 'project-card';
+                        projectCard.innerHTML = `
+                            <div class="project-image" style="background-image: url('${project.image_url || 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 800 600\"><rect fill=\"%231a1a2e\" width=\"800\" height=\"600\"/><text fill=\"%23333\" x=\"50%\" y=\"50%\" text-anchor=\"middle\" font-size=\"24\">No Image</text></svg>')"></div>
+                            <div class="project-content">
+                                <h3 class="project-title">${project.title}</h3>
+                                <p class="project-description">${project.description}</p>
+                                <div class="project-tags">
+                                    ${(project.tags || []).slice(0, 4).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                </div>
+                                <div class="project-links">
+                                    ${project.demo_url && project.demo_url !== '#' ? `<a href="${project.demo_url}" target="_blank" rel="noopener" class="btn btn-primary">Live Demo</a>` : ''}
+                                    ${project.github_url && project.github_url !== '#' ? `<a href="${project.github_url}" target="_blank" rel="noopener" class="btn btn-secondary">GitHub</a>` : ''}
+                                </div>
+                            </div>
+                        `;
+                        projectsGrid.appendChild(projectCard);
+                    });
+                }
+            }
+        }
+        
+        // Handle contact form submission
+        async function handleContactSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Thank you! Your message has been sent successfully.');
+                    form.reset();
+                } else {
+                    alert('Failed to send message. Please try again.');
+                }
+            } catch (error) {
+                console.error('Contact form error:', error);
+                alert('An error occurred. Please try again later.');
+            }
+        }
+        
+        // Initialize API data loading
+        async function initAPIData() {
+            await Promise.all([
+                loadProfile(),
+                loadSkills(),
+                loadProjects()
+            ]);
+            
+            // Attach contact form handler
+            const contactForm = document.getElementById('contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', handleContactSubmit);
+            }
+        }
+
+        // ============================================
         // INITIALIZATION
         // ============================================
         document.addEventListener('DOMContentLoaded', () => {
@@ -1375,6 +1553,7 @@
             initSectionAnimations();
             initSmoothScroll();
             checkReducedMotion();
+            initAPIData(); // Load data from API
         });
     </script>
 </body>
