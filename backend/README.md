@@ -34,14 +34,32 @@ cp .env.example .env
 ```
 
 Edit file `.env` dan sesuaikan konfigurasi database Anda:
+
+**Opsi 1: Menggunakan DATABASE_URL (Recommended untuk TiDB/Cloud MySQL)**
+```env
+DATABASE_URL=mysql+pymysql://<user>:<password>@<host>:<port>/<dbname>?ssl_ca=/path/to/ca.pem
+SECRET_KEY=your-secret-key-here
+FLASK_ENV=development
+RESEND_API_KEY=your_resend_api_key
+SENDER_EMAIL=onboarding@resend.dev
+PERSONAL_EMAIL=admin@example.com
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+FRONTEND_URL=http://localhost:8080
+```
+
+**Opsi 2: Menggunakan Konfigurasi Individual (untuk MySQL lokal)**
 ```env
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=portfolio_db
 DB_USER=root
 DB_PASSWORD=your_password
-FRONTEND_URL=http://localhost:8080
+SSL_CA_PATH=/path/to/ca.pem
 SECRET_KEY=your-secret-key-here
+FLASK_ENV=development
+FRONTEND_URL=http://localhost:8080
 ```
 
 5. **Jalankan database migration (jika belum ada):**

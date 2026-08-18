@@ -25,16 +25,36 @@ CORS(app, origins=[
     'https://yourdomain.com'
 ])
 
-# Database Configuration
-db_host = os.getenv('DB_HOST', 'localhost')
-db_port = os.getenv('DB_PORT', '3306')
-db_name = os.getenv('DB_NAME', 'portfolio_db')
-db_user = os.getenv('DB_USER', 'root')
-db_password = os.getenv('DB_PASSWORD', '')
+# Database Configuration - Menggunakan DATABASE_URL dari .env
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    # Fallback ke konfigurasi individual jika DATABASE_URL tidak diset
+    db_host = os.getenv('DB_HOST', 'localhost')
+    db_port = os.getenv('DB_PORT', '3306')
+    db_name = os.getenv('DB_NAME', 'portfolio_db')
+    db_user = os.getenv('DB_USER', 'root')
+    db_password = os.getenv('DB_PASSWORD', '')
+    ssl_ca = os.getenv('SSL_CA_PATH', '')
+    
+    if ssl_ca:
+        DATABASE_URL = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?ssl_ca={ssl_ca}'
+    else:
+        DATABASE_URL = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
+app.config['FLASK_ENV'] = os.getenv('FLASK_ENV', 'development')
+
+# Email Configuration
+app.config['RESEND_API_KEY'] = os.getenv('RESEND_API_KEY', '')
+app.config['SENDER_EMAIL'] = os.getenv('SENDER_EMAIL', 'onboarding@resend.dev')
+app.config['PERSONAL_EMAIL'] = os.getenv('PERSONAL_EMAIL', 'admin@example.com')
+
+# Cloudinary Configuration
+app.config['CLOUDINARY_CLOUD_NAME'] = os.getenv('CLOUDINARY_CLOUD_NAME', '')
+app.config['CLOUDINARY_API_KEY'] = os.getenv('CLOUDINARY_API_KEY', '')
+app.config['CLOUDINARY_API_SECRET'] = os.getenv('CLOUDINARY_API_SECRET', '')
 
 db = SQLAlchemy(app)
 
@@ -177,6 +197,60 @@ def generate_otp(length=6):
     """Generate random OTP code"""
     return ''.join(random.choices(string.digits, k=length))
 
+def send_otp_email(email, otp_code):
+    """Send OTP via Resend Email API"""
+    try:
+        import requests
+        
+        resend_api_key = app.config.get('RESEND_API_KEY')
+        sender_email = app.config.get('SENDER_EMAIL')
+        
+        if not resend_api_key:
+            print("RESEND_API_KEY not configured, OTP shown in console only")
+            return False
+        
+        # Prepare email content
+        subject = "Emergency Login OTP - Portfolio Admin"
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Emergency Login Request</h2>
+            <p>You requested an emergency login OTP for your portfolio admin panel.</p>
+            <div style="background-color: #f4f4f4; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                <h1 style="color: #333; font-size: 36px; letter-spacing: 5px;">{otp_code}</h1>
+                <p style="color: #666;">This code will expire in 10 minutes</p>
+            </div>
+            <p style="color: #999; font-size: 12px;">If you didn't request this code, please ignore this email.</p>
+        </body>
+        </html>
+        """
+        
+        # Send via Resend API
+        response = requests.post(
+            'https://api.resend.com/emails',
+            headers={
+                'Authorization': f'Bearer {resend_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'from': sender_email,
+                'to': email,
+                'subject': subject,
+                'html': html_content
+            }
+        )
+        
+        if response.status_code == 200:
+            print(f"OTP email sent successfully to {email}")
+            return True
+        else:
+            print(f"Failed to send OTP email: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"Error sending OTP email: {e}")
+        return False
+
 def admin_required(f):
     """Decorator for admin-only routes"""
     @wraps(f)
@@ -187,6 +261,60 @@ def admin_required(f):
             return jsonify({'error': 'Unauthorized'}), 401
         return f(*args, **kwargs)
     return decorated_function
+
+def send_contact_notification(sender_name, sender_email, subject, content):
+    """Send contact form notification via Resend API"""
+    try:
+        import requests
+        
+        resend_api_key = app.config.get('RESEND_API_KEY')
+        sender_email_config = app.config.get('SENDER_EMAIL')
+        personal_email = app.config.get('PERSONAL_EMAIL')
+        
+        if not resend_api_key:
+            print("RESEND_API_KEY not configured, contact notification shown in console only")
+            return False
+        
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>New Contact Form Submission</h2>
+            <div style="background-color: #f4f4f4; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>From:</strong> {sender_name} ({sender_email})</p>
+                <p><strong>Subject:</strong> {subject}</p>
+                <hr style="border: 1px solid #ddd; margin: 15px 0;">
+                <p><strong>Message:</strong></p>
+                <p style="white-space: pre-wrap;">{content}</p>
+            </div>
+            <p style="color: #999; font-size: 12px;">This message was sent from your portfolio contact form.</p>
+        </body>
+        </html>
+        """
+        
+        response = requests.post(
+            'https://api.resend.com/emails',
+            headers={
+                'Authorization': f'Bearer {resend_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'from': sender_email_config,
+                'to': personal_email,
+                'subject': f'Contact Form: {subject}',
+                'html': html_content
+            }
+        )
+        
+        if response.status_code == 200:
+            print(f"Contact notification sent successfully to {personal_email}")
+            return True
+        else:
+            print(f"Failed to send contact notification: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"Error sending contact notification: {e}")
+        return False
 
 # ==================== PUBLIC ROUTES ====================
 
@@ -351,7 +479,13 @@ def submit_contact():
         db.session.add(message)
         db.session.commit()
         
-        # TODO: Send email notification using Resend or SMTP
+        # Send email notification using Resend API
+        send_contact_notification(
+            data['sender_name'],
+            data['sender_email'],
+            data['subject'],
+            data['content']
+        )
         
         return jsonify({
             'success': True,
@@ -549,13 +683,21 @@ def request_otp():
     db.session.add(otp)
     db.session.commit()
     
-    # TODO: Send OTP via email using Resend or SMTP
-    # For now, return OTP in response (only for development!)
-    return jsonify({
+    # Send OTP via email using Resend API
+    email_sent = send_otp_email(email, otp_code)
+    
+    # Return response (OTP code only in development mode)
+    response_data = {
         'success': True,
-        'message': 'OTP generated (check console in development)',
-        'otp_code': otp_code  # Remove in production!
-    })
+        'message': 'OTP sent successfully' if email_sent else 'OTP generated (email not configured)'
+    }
+    
+    # Only include OTP code in development mode
+    if app.config.get('FLASK_ENV') == 'development':
+        response_data['otp_code'] = otp_code
+        print(f"Development mode - OTP Code: {otp_code}")
+    
+    return jsonify(response_data)
 
 @app.route('/api/auth/verify-otp', methods=['POST'])
 def verify_otp():
