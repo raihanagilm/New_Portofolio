@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Full-Stack Developer & Tech Enthusiast - Portfolio">
+    <title>Full Name | Portfolio</title>
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           CSS CUSTOM PROPERTIES (CUSTOMIZE HERE)
+           ============================================ */
+        :root {
+            /* Color Palette - Tech/Developer Theme */
+            --color-primary: #0a0a0a;
+            --color-secondary: #1a1a2e;
+            --color-accent: #00d9ff;
+            --color-accent-secondary: #7c3aed;
+            --color-text: #f5f5f5;
+            --color-text-muted: #a0a0a0;
+            --color-bg-gradient-start: #0a0a0a;
+            --color-bg-gradient-end: #1a1a2e;
+            
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-size-hero: clamp(3rem, 8vw, 6rem);
+            --font-size-title: clamp(2rem, 5vw, 4rem);
+            --font-size-subtitle: clamp(1.25rem, 3vw, 2rem);
+            --font-size-body: clamp(1rem, 2vw, 1.25rem);
+            --font-size-small: 0.875rem;
+            
+            /* Spacing */
+            --spacing-section: clamp(100vh, 120vh, 150vh);
+            --spacing-container: clamp(1.5rem, 5vw, 4rem);
+            
+            /* Animation */
+            --transition-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --duration-slow: 900ms;
+            --duration-medium: 600ms;
+            --duration-fast: 300ms;
+            
+            /* Effects */
+            --blur-subtle: blur(10px);
+            --blur-strong: blur(20px);
+        }
+
+        /* ============================================
+           RESET & BASE STYLES
+           ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-family);
+            color: var(--color-text);
+            background: var(--color-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+            cursor: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+            body {
+                cursor: auto;
+            }
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ============================================
+           CUSTOM CURSOR (Desktop Only)
+           ============================================ */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--color-accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background-color 0.3s;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-dot {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: var(--color-accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10001;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor.hover {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(0, 217, 255, 0.1);
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .cursor, .cursor-dot {
+                display: none;
+            }
+            body {
+                cursor: auto;
+            }
+        }
+
+        /* ============================================
+           THREE.JS CANVAS
+           ============================================ */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ============================================
+           SCROLL CONTAINER
+           ============================================ */
+        .scroll-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            min-height: var(--spacing-section);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-container);
+            position: relative;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ============================================
+           TYPOGRAPHY & TEXT EFFECTS
+           ============================================ */
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-title {
+            font-size: var(--font-size-hero);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .hero-subtitle {
+            font-size: var(--font-size-subtitle);
+            color: var(--color-text-muted);
+            font-weight: 300;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .section-title {
+            font-size: var(--font-size-title);
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
+        }
+
+        /* Word-by-word reveal */
+        .reveal-text {
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .reveal-text span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: opacity 0.6s var(--transition-smooth), transform 0.6s var(--transition-smooth);
+        }
+
+        .reveal-text span.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            padding: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--color-text-muted);
+            cursor: pointer;
+            transition: all 0.3s var(--transition-smooth);
+            position: relative;
+        }
+
+        .nav-dot::before {
+            content: attr(data-label);
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%) translateX(10px);
+            background: var(--color-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: var(--font-size-small);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .nav-dot.active {
+            border-color: var(--color-accent);
+            background: var(--color-accent);
+        }
+
+        .nav-dot:hover {
+            transform: scale(1.2);
+        }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        #hero {
+            text-align: left;
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ============================================
+           ABOUT SECTION
+           ============================================ */
+        #about {
+            align-items: flex-start;
+        }
+
+        .about-content {
+            max-width: 800px;
+        }
+
+        .bio {
+            font-size: var(--font-size-body);
+            color: var(--color-text-muted);
+            line-height: 1.8;
+            margin-top: 2rem;
+        }
+
+        .bio p {
+            margin-bottom: 1.5rem;
+        }
+
+        /* ============================================
+           PROJECTS SECTION
+           ============================================ */
+        #projects {
+            align-items: flex-start;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .project-card {
+            background: rgba(26, 26, 46, 0.5);
+            backdrop-filter: var(--blur-subtle);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.4s var(--transition-smooth);
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .project-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--color-accent);
+            box-shadow: 0 20px 40px rgba(0, 217, 255, 0.1);
+        }
+
+        .project-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--color-text);
+        }
+
+        .project-description {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tag {
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--color-accent);
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-link {
+            color: var(--color-text);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .project-link:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+
+        /* ============================================
+           SKILLS SECTION
+           ============================================ */
+        #skills {
+            align-items: flex-start;
+        }
+
+        .skills-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .skill-category {
+            background: rgba(26, 26, 46, 0.5);
+            backdrop-filter: var(--blur-subtle);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .skill-category.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .skill-category h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: var(--color-accent);
+        }
+
+        .skill-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .skill-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .skill-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .skill-name {
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        .skill-level {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        .skill-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
+            border-radius: 3px;
+            width: 0;
+            transition: width 1.2s var(--transition-smooth);
+        }
+
+        .skill-category.visible .skill-progress {
+            width: var(--progress);
+        }
+
+        /* ============================================
+           CONTACT SECTION
+           ============================================ */
+        #contact {
+            align-items: center;
+            text-align: center;
+        }
+
+        .contact-content {
+            max-width: 600px;
+        }
+
+        .contact-text {
+            font-size: var(--font-size-body);
+            color: var(--color-text-muted);
+            margin: 2rem 0 3rem;
+            line-height: 1.8;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: var(--color-text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: var(--blur-subtle);
+        }
+
+        .contact-btn:hover {
+            border-color: var(--color-accent);
+            background: rgba(0, 217, 255, 0.1);
+            color: var(--color-accent);
+            transform: translateY(-3px);
+        }
+
+        .contact-btn.primary {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-accent-secondary));
+            border: none;
+            color: var(--color-primary);
+        }
+
+        .contact-btn.primary:hover {
+            opacity: 0.9;
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .email-display {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 2rem;
+            display: block;
+        }
+
+        /* ============================================
+           FOREGROUND ELEMENTS
+           ============================================ */
+        .foreground {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30vh;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.6;
+            transition: opacity 0.6s var(--transition-smooth);
+        }
+
+        .foreground.hidden {
+            opacity: 0;
+        }
+
+        /* ============================================
+           SCROLL PROGRESS INDICATOR
+           ============================================ */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
+            z-index: 1001;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* ============================================
+           LOADING SCREEN
+           ============================================ */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s var(--transition-smooth), visibility 0.6s;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .skills-container {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .contact-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 390px) {
+            :root {
+                --font-size-hero: 2.5rem;
+                --font-size-title: 1.75rem;
+                --font-size-subtitle: 1.25rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            .project-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-text">Loading</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-dot" id="cursor-dot"></div>
+
+    <!-- Scroll Progress -->
+    <div class="scroll-progress" id="scroll-progress"></div>
+
+    <!-- Three.js Canvas -->
+    <canvas id="webgl-canvas" aria-hidden="true"></canvas>
+
+    <!-- Navigation -->
+    <nav class="nav" aria-label="Main navigation">
+        <div class="nav-dot active" data-target="hero" data-label="Home" aria-label="Navigate to Home"></div>
+        <div class="nav-dot" data-target="about" data-label="About" aria-label="Navigate to About"></div>
+        <div class="nav-dot" data-target="projects" data-label="Projects" aria-label="Navigate to Projects"></div>
+        <div class="nav-dot" data-target="skills" data-label="Skills" aria-label="Navigate to Skills"></div>
+        <div class="nav-dot" data-target="contact" data-label="Contact" aria-label="Navigate to Contact"></div>
+    </nav>
+
+    <!-- Scroll Container -->
+    <div class="scroll-container">
+        <!-- Hero Section -->
+        <section id="hero" aria-label="Hero section">
+            <div class="container hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">Full Name</span>
+                </h1>
+                <p class="hero-subtitle">Full-Stack Developer & Tech Enthusiast</p>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" aria-label="About section">
+            <div class="container about-content">
+                <h2 class="section-title">About Me</h2>
+                <div class="bio">
+                    <p>Passionate developer creating aesthetic, performant, and cardboard-craft inspired digital experiences. I specialize in building modern web applications with a focus on user experience and clean code architecture.</p>
+                    <p>With expertise in Python, Flask, JavaScript, and modern frontend frameworks, I bring ideas to life through elegant solutions and innovative design patterns.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" aria-label="Projects section">
+            <div class="container">
+                <h2 class="section-title">Featured Projects</h2>
+                <div class="projects-grid">
+                    <article class="project-card">
+                        <h3 class="project-title">Cardboard Portfolio Manager</h3>
+                        <p class="project-description">Sistem manajemen portofolio interaktif bertema serat kardus dengan otentikasi OTP darurat dan integrasi Cloudinary.</p>
+                        <div class="project-tags">
+                            <span class="tag">Flask</span>
+                            <span class="tag">Tailwind</span>
+                            <span class="tag">MySQL</span>
+                            <span class="tag">Resend</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="project-link" aria-label="View demo">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                    <polyline points="15 3 21 3 21 9"/>
+                                    <line x1="10" y1="14" x2="21" y2="3"/>
+                                </svg>
+                                Demo
+                            </a>
+                            <a href="#" class="project-link" aria-label="View source code">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                                </svg>
+                                Code
+                            </a>
+                        </div>
+                    </article>
+
+                    <article class="project-card">
+                        <h3 class="project-title">E-Commerce Platform</h3>
+                        <p class="project-description">Full-stack e-commerce solution with real-time inventory management, payment gateway integration, and analytics dashboard.</p>
+                        <div class="project-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">React</span>
+                            <span class="tag">PostgreSQL</span>
+                            <span class="tag">Stripe</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="project-link" aria-label="View demo">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                    <polyline points="15 3 21 3 21 9"/>
+                                    <line x1="10" y1="14" x2="21" y2="3"/>
+                                </svg>
+                                Demo
+                            </a>
+                            <a href="#" class="project-link" aria-label="View source code">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                                </svg>
+                                Code
+                            </a>
+                        </div>
+                    </article>
+
+                    <article class="project-card">
+                        <h3 class="project-title">Task Management API</h3>
+                        <p class="project-description">RESTful API for task management with authentication, real-time updates, and collaborative features.</p>
+                        <div class="project-tags">
+                            <span class="tag">FastAPI</span>
+                            <span class="tag">WebSocket</span>
+                            <span class="tag">Redis</span>
+                            <span class="tag">Docker</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="project-link" aria-label="View documentation">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                    <polyline points="15 3 21 3 21 9"/>
+                                    <line x1="10" y1="14" x2="21" y2="3"/>
+                                </svg>
+                                Docs
+                            </a>
+                            <a href="#" class="project-link" aria-label="View source code">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                                </svg>
+                                Code
+                            </a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" aria-label="Skills section">
+            <div class="container">
+                <h2 class="section-title">Technical Skills</h2>
+                <div class="skills-container">
+                    <div class="skill-category">
+                        <h3>Backend</h3>
+                        <div class="skill-list">
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">Python & Flask</span>
+                                    <span class="skill-level">92%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 92%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">FastAPI</span>
+                                    <span class="skill-level">88%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 88%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">Node.js</span>
+                                    <span class="skill-level">85%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="skill-category">
+                        <h3>Frontend</h3>
+                        <div class="skill-list">
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">Tailwind CSS</span>
+                                    <span class="skill-level">95%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 95%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">JavaScript (ES6+)</span>
+                                    <span class="skill-level">88%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 88%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">React</span>
+                                    <span class="skill-level">82%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 82%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="skill-category">
+                        <h3>Database & Tools</h3>
+                        <div class="skill-list">
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">MySQL / TiDB</span>
+                                    <span class="skill-level">85%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 85%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">Cloudinary API</span>
+                                    <span class="skill-level">80%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 80%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-info">
+                                    <span class="skill-name">Resend Email API</span>
+                                    <span class="skill-level">85%</span>
+                                </div>
+                                <div class="skill-bar">
+                                    <div class="skill-progress" style="--progress: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" aria-label="Contact section">
+            <div class="container contact-content">
+                <h2 class="section-title">Get In Touch</h2>
+                <p class="contact-text">I'm always open to discussing new projects, creative ideas, or opportunities to be part of your visions. Let's create something amazing together.</p>
+                
+                <a href="mailto:admin@example.com" class="email-display">admin@example.com</a>
+                
+                <div class="contact-links">
+                    <a href="mailto:admin@example.com" class="contact-btn primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        Send Email
+                    </a>
+                    <a href="#" class="contact-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+                        </svg>
+                        GitHub
+                    </a>
+                    <a href="#" class="contact-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                            <rect x="2" y="9" width="4" height="12"/>
+                            <circle cx="4" cy="4" r="2"/>
+                        </svg>
+                        LinkedIn
+                    </a>
+                    <a href="#" class="contact-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                        </svg>
+                        Instagram
+                    </a>
+                </div>
+
+                <p style="color: var(--color-text-muted); font-size: 0.875rem;">
+                    Location: City, Country<br>
+                    Phone: +62 800-000-0000
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r149/three.min.js"></script>
+    
+    <script>
+        // ============================================
+        // CONFIGURATION (CUSTOMIZE HERE)
+        // ============================================
+        const CONFIG = {
+            // Camera movement speed
+            cameraSpeed: 0.0008,
+            
+            // Particle count
+            particleCount: 2000,
+            
+            // Colors
+            colors: {
+                primary: 0x0a0a0a,
+                secondary: 0x1a1a2e,
+                accent: 0x00d9ff,
+                accentSecondary: 0x7c3aed
+            },
+            
+            // Fog density
+            fogDensity: 0.02,
+            
+            // Bloom strength
+            bloomStrength: 0.5
+        };
+
+        // ============================================
+        // THREE.JS SETUP
+        // ============================================
+        let scene, camera, renderer, particles, geometry, material;
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+        let scrollProgress = 0;
+        let currentSection = 0;
+        
+        const sections = document.querySelectorAll('section');
+        const totalSections = sections.length;
+
+        function initThree() {
+            const canvas = document.getElementById('webgl-canvas');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(CONFIG.colors.primary);
+            scene.fog = new THREE.FogExp2(CONFIG.colors.secondary, CONFIG.fogDensity);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.z = 30;
+            camera.position.y = 10;
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            
+            // Particles
+            createParticles();
+            
+            // Geometric shapes
+            createGeometricShapes();
+            
+            // Lights
+            addLights();
+            
+            // Event listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('scroll', onScroll);
+            window.addEventListener('mousemove', onMouseMove);
+            
+            // Start animation
+            animate();
+            
+            // Hide loader
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+            }, 1000);
+        }
+
+        function createParticles() {
+            geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(CONFIG.particleCount * 3);
+            const colors = new Float32Array(CONFIG.particleCount * 3);
+            
+            const color1 = new THREE.Color(CONFIG.colors.accent);
+            const color2 = new THREE.Color(CONFIG.colors.accentSecondary);
+            
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                // Position
+                positions[i * 3] = (Math.random() - 0.5) * 200;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 200;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
+                
+                // Color
+                const mixedColor = color1.clone().lerp(color2, Math.random());
+                colors[i * 3] = mixedColor.r;
+                colors[i * 3 + 1] = mixedColor.g;
+                colors[i * 3 + 2] = mixedColor.b;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            material = new THREE.PointsMaterial({
+                size: 0.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        function createGeometricShapes() {
+            // Create floating geometric shapes
+            const shapes = [];
+            const geometries = [
+                new THREE.IcosahedronGeometry(1, 0),
+                new THREE.OctahedronGeometry(1, 0),
+                new THREE.TetrahedronGeometry(1, 0),
+                new THREE.TorusGeometry(0.8, 0.3, 8, 16)
+            ];
+            
+            for (let i = 0; i < 15; i++) {
+                const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+                const material = new THREE.MeshPhongMaterial({
+                    color: Math.random() > 0.5 ? CONFIG.colors.accent : CONFIG.colors.accentSecondary,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.x = (Math.random() - 0.5) * 80;
+                mesh.position.y = (Math.random() - 0.5) * 80;
+                mesh.position.z = (Math.random() - 0.5) * 50 - 10;
+                
+                mesh.rotation.x = Math.random() * Math.PI;
+                mesh.rotation.y = Math.random() * Math.PI;
+                
+                mesh.userData = {
+                    rotationSpeed: {
+                        x: (Math.random() - 0.5) * 0.02,
+                        y: (Math.random() - 0.5) * 0.02
+                    }
+                };
+                
+                scene.add(mesh);
+                shapes.push(mesh);
+            }
+            
+            // Store for animation
+            window.geometricShapes = shapes;
+        }
+
+        function addLights() {
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const pointLight1 = new THREE.PointLight(CONFIG.colors.accent, 1, 100);
+            pointLight1.position.set(20, 20, 20);
+            scene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(CONFIG.colors.accentSecondary, 1, 100);
+            pointLight2.position.set(-20, -20, 20);
+            scene.add(pointLight2);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onScroll() {
+            scrollProgress = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+            
+            // Update scroll progress indicator
+            document.getElementById('scroll-progress').style.width = `${scrollProgress * 100}%`;
+            
+            // Update current section
+            const scrollPos = window.scrollY + window.innerHeight / 2;
+            sections.forEach((section, index) => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.offsetHeight;
+                if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+                    currentSection = index;
+                    updateNavDots(index);
+                }
+            });
+        }
+
+        function updateNavDots(activeIndex) {
+            const dots = document.querySelectorAll('.nav-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === activeIndex);
+            });
+        }
+
+        function onMouseMove(event) {
+            mouseX = (event.clientX - window.innerWidth / 2) * 0.05;
+            mouseY = (event.clientY - window.innerHeight / 2) * 0.05;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.001;
+            
+            // Smooth mouse follow
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+            
+            // Camera movement based on scroll
+            const targetCameraY = 10 - scrollProgress * 50;
+            const targetCameraZ = 30 - scrollProgress * 20;
+            
+            camera.position.y += (targetCameraY - camera.position.y) * CONFIG.cameraSpeed;
+            camera.position.z += (targetCameraZ - camera.position.z) * CONFIG.cameraSpeed;
+            camera.position.x += (targetX - camera.position.x) * 0.02;
+            
+            camera.rotation.y += (targetX * 0.01 - camera.rotation.y) * 0.02;
+            camera.rotation.x += (targetY * 0.01 - camera.rotation.x) * 0.02;
+            
+            // Rotate particles
+            particles.rotation.y = time * 0.05;
+            particles.rotation.x = time * 0.02;
+            
+            // Animate geometric shapes
+            if (window.geometricShapes) {
+                window.geometricShapes.forEach(shape => {
+                    shape.rotation.x += shape.userData.rotationSpeed.x;
+                    shape.rotation.y += shape.userData.rotationSpeed.y;
+                });
+            }
+            
+            // Pulse particles
+            const positions = geometry.attributes.position.array;
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                const i3 = i * 3;
+                positions[i3 + 1] += Math.sin(time + positions[i3]) * 0.05;
+            }
+            geometry.attributes.position.needsUpdate = true;
+            
+            renderer.render(scene, camera);
+        }
+
+        // ============================================
+        // CUSTOM CURSOR
+        // ============================================
+        function initCursor() {
+            const cursor = document.getElementById('cursor');
+            const cursorDot = document.getElementById('cursor-dot');
+            
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+                cursorDot.style.left = e.clientX + 'px';
+                cursorDot.style.top = e.clientY + 'px';
+            });
+            
+            // Hover effect on interactive elements
+            const interactiveElements = document.querySelectorAll('a, button, .nav-dot, .project-card');
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+            });
+        }
+
+        // ============================================
+        // TEXT REVEAL ANIMATION
+        // ============================================
+        function initTextReveal() {
+            const titles = document.querySelectorAll('.hero-title, .section-title');
+            
+            titles.forEach(title => {
+                const text = title.textContent;
+                title.innerHTML = '';
+                
+                text.split('').forEach((char, index) => {
+                    const span = document.createElement('span');
+                    span.textContent = char === ' ' ? '\u00A0' : char;
+                    span.style.transitionDelay = `${index * 30}ms`;
+                    title.appendChild(span);
+                });
+            });
+            
+            // Trigger reveal on scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const spans = entry.target.querySelectorAll('span');
+                        spans.forEach((span, index) => {
+                            setTimeout(() => {
+                                span.classList.add('visible');
+                            }, index * 30);
+                        });
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            titles.forEach(title => observer.observe(title));
+        }
+
+        // ============================================
+        // SECTION VISIBILITY ANIMATIONS
+        // ============================================
+        function initSectionAnimations() {
+            // Hero animations
+            window.addEventListener('load', () => {
+                const heroTitle = document.querySelector('.hero-title');
+                const heroSubtitle = document.querySelector('.hero-subtitle');
+                
+                setTimeout(() => {
+                    heroTitle.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                    heroTitle.style.opacity = '1';
+                    heroTitle.style.transform = 'translateY(0)';
+                }, 500);
+                
+                setTimeout(() => {
+                    heroSubtitle.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                    heroSubtitle.style.opacity = '1';
+                    heroSubtitle.style.transform = 'translateY(0)';
+                }, 800);
+            });
+            
+            // Project cards animation
+            const projectObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                        }, index * 150);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            document.querySelectorAll('.project-card').forEach(card => {
+                projectObserver.observe(card);
+            });
+            
+            // Skill categories animation
+            const skillObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.2 });
+            
+            document.querySelectorAll('.skill-category').forEach(category => {
+                skillObserver.observe(category);
+            });
+        }
+
+        // ============================================
+        // SMOOTH SCROLL NAVIGATION
+        // ============================================
+        function initSmoothScroll() {
+            const navDots = document.querySelectorAll('.nav-dot');
+            
+            navDots.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const targetId = dot.getAttribute('data-target');
+                    const targetSection = document.getElementById(targetId);
+                    
+                    if (targetSection) {
+                        targetSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        }
+
+        // ============================================
+        // REDUCED MOTION SUPPORT
+        // ============================================
+        function checkReducedMotion() {
+            const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+            
+            if (mediaQuery.matches) {
+                // Disable animations
+                CONFIG.cameraSpeed = 0.0001;
+                document.querySelectorAll('*').forEach(el => {
+                    el.style.animationDuration = '0.01ms';
+                    el.style.transitionDuration = '0.01ms';
+                });
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initThree();
+            initCursor();
+            initTextReveal();
+            initSectionAnimations();
+            initSmoothScroll();
+            checkReducedMotion();
+        });
+    </script>
+</body>
+</html>
